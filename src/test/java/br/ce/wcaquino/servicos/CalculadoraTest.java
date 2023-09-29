@@ -1,16 +1,42 @@
 package br.ce.wcaquino.servicos;
 
 import br.ce.wcaquino.exception.DivisaoPorZeroException;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
 public class CalculadoraTest {
-    private Calculadora calc;
+    @Mock private Calculadora calc;
 
     @Before
     public void setup() {
         calc = new Calculadora();
+    }
+
+    @Test
+    public void deveSomarQualquerInteiroNosParametros() {
+        // Cenario/expectativa
+        Mockito.when(calc.somar(Mockito.anyInt(), Mockito.anyInt())).thenReturn(5);
+
+        //ação
+        int resultado = calc.somar(4,900);
+
+        // validação
+        Assert.assertThat(resultado, CoreMatchers.is(5));
+    }
+    @Test
+    public void deveSomarQualquerInteiroComPrimeiroParametroFixo() {
+        // Cenario/expectativa
+        Mockito.when(calc.somar(Mockito.eq(2), Mockito.anyInt())).thenReturn(5);
+
+        //ação
+        int resultado = calc.somar(2,900);
+
+        // validação
+        Assert.assertThat(resultado, CoreMatchers.is(5));
     }
 
     @Test

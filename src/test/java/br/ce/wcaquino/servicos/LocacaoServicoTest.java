@@ -101,6 +101,8 @@ public class LocacaoServicoTest {
         /*
          * Leia-se; Mockito, quando for chamado o método obterLocacoesPendentes() então retorne uma lista de locações
          * vide o método em LocacaoService.obterLocacoesPendentes
+         *
+         * Vamos criar a expectativa when() ... thenReturn()
          */
         Mockito.when(locacaoDaoMock.obterLocacoesPendentes()).thenReturn(locacoes);
 
