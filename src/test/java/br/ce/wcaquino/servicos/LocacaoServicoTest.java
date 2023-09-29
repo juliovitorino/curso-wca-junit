@@ -5,10 +5,8 @@ import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
 import br.ce.wcaquino.exception.FilmeSemEstoqueException;
 import br.ce.wcaquino.exception.LocadoraException;
-import br.ce.wcaquino.matchers.DiaSemanaMatcher;
 import br.ce.wcaquino.matchers.MatchersProprios;
 import br.ce.wcaquino.utils.DataUtils;
-import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -24,6 +22,20 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import static br.ce.wcaquino.matchers.MatchersProprios.ehHoje;
+import static br.ce.wcaquino.matchers.MatchersProprios.ehHojeComDiferencaDias;
+import static br.ce.wcaquino.utils.DataUtils.adicionarDias;
+import static br.ce.wcaquino.utils.DataUtils.compararData;
+import static br.ce.wcaquino.utils.DataUtils.isMesmaData;
+import static br.ce.wcaquino.utils.DataUtils.obterDataComDiferencaDias;
+import static br.ce.wcaquino.utils.DataUtils.verificarDiaSemana;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 
 public class LocacaoServicoTest {
 
@@ -62,7 +74,7 @@ public class LocacaoServicoTest {
     @Test
     public void deveDevolverFilmeNaSegundaAoAlugarNoSabado() {
 
-        Assume.assumeTrue(DataUtils.verificarDiaSemana(new Date(), Calendar.SATURDAY));
+        Assume.assumeTrue(verificarDiaSemana(new Date(), Calendar.SATURDAY));
         // cenario
         filmes.add(new Filme("The big short",10,5.0));
 
@@ -70,10 +82,10 @@ public class LocacaoServicoTest {
         Locacao locacao = locacaoService.alugarFilme(usuario, filmes);
 
         //validação
-        boolean ehSegunda = DataUtils.verificarDiaSemana(locacao.getDataRetorno(),Calendar.MONDAY);
-        Assert.assertThat(locacao.getDataRetorno(), MatchersProprios.caiEm(Calendar.MONDAY));
-        Assert.assertThat(locacao.getDataRetorno(), MatchersProprios.caiNumaSegunda());
-        Assert.assertTrue(ehSegunda);
+        boolean ehSegunda = verificarDiaSemana(locacao.getDataRetorno(),Calendar.MONDAY);
+        assertThat(locacao.getDataRetorno(), MatchersProprios.caiEm(Calendar.MONDAY));
+        assertThat(locacao.getDataRetorno(), MatchersProprios.caiNumaSegunda());
+        assertTrue(ehSegunda);
 
     }
 
@@ -82,11 +94,11 @@ public class LocacaoServicoTest {
         // cenario
         Date agora = new Date();
         Date expectedDateLocacaoHoje = new Date();
-        Date expectedDateEntrega = DataUtils.obterDataComDiferencaDias(1);
-        if(DataUtils.verificarDiaSemana(agora, Calendar.SATURDAY)) {
-            expectedDateEntrega = DataUtils.adicionarDias(agora,2);
-        } else if(DataUtils.verificarDiaSemana(agora, Calendar.SUNDAY)) {
-            expectedDateEntrega = DataUtils.adicionarDias(agora,1);
+        Date expectedDateEntrega = obterDataComDiferencaDias(1);
+        if(verificarDiaSemana(agora, Calendar.SATURDAY)) {
+            expectedDateEntrega = adicionarDias(agora,2);
+        } else if(verificarDiaSemana(agora, Calendar.SUNDAY)) {
+            expectedDateEntrega = adicionarDias(agora,1);
         }
 
         filmes.add(new Filme("The big short",10,5.0));
@@ -95,9 +107,13 @@ public class LocacaoServicoTest {
         Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
 
         //validação
-        errorCollector.checkThat(locacao.getValor() > 0, CoreMatchers.is(true));
-        errorCollector.checkThat(DataUtils.isMesmaData(locacao.getDataRetorno(), expectedDateEntrega), CoreMatchers.is(true));
-        errorCollector.checkThat(DataUtils.isMesmaData(locacao.getDataLocacao(), expectedDateLocacaoHoje), CoreMatchers.is(true));
+        errorCollector.checkThat(locacao.getValor() > 0, is(true));
+        errorCollector.checkThat(isMesmaData(locacao.getDataRetorno(), expectedDateEntrega), is(true));
+        errorCollector.checkThat(isMesmaData(locacao.getDataLocacao(), expectedDateLocacaoHoje), is(true));
+
+        // com matcher próprio
+        errorCollector.checkThat(locacao.getDataRetorno(), ehHojeComDiferencaDias(1));
+        errorCollector.checkThat(locacao.getDataLocacao(), ehHoje());
     }
 
     @Test(expected = FilmeSemEstoqueException.class)
@@ -129,9 +145,9 @@ public class LocacaoServicoTest {
         //execução
         try {
             Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
-            Assert.fail("Deveria lançar exceção");
+            fail("Deveria lançar exceção");
         } catch (FilmeSemEstoqueException e) {
-            Assert.assertThat(e.getMessage(), CoreMatchers.is("Filme sem estoque"));
+            assertThat(e.getMessage(), is("Filme sem estoque"));
         }
 
     }
@@ -146,9 +162,9 @@ public class LocacaoServicoTest {
         //execução
         try {
             Locacao locacao = locacaoService.alugarFilme(null,filmes);
-            Assert.fail("Deveria lançar exceção");
+            fail("Deveria lançar exceção");
         } catch (LocadoraException e) {
-            Assert.assertThat(e.getMessage(), CoreMatchers.is("Usuário está nulo ou vazio"));
+            assertThat(e.getMessage(), is("Usuário está nulo ou vazio"));
         }
 
     }
@@ -180,14 +196,14 @@ public class LocacaoServicoTest {
 
         //execução
         Locacao locacao = locacaoService.alugarFilme(usuario,null);
-        Assert.fail("Deveria lançar exceção");
+        fail("Deveria lançar exceção");
 
     }
 
 
     @Test
     public void deveFalharDataLocacaoDiferenteHojeTest() {
-        Date datataFuturo = DataUtils.obterDataComDiferencaDias(10);
+        Date datataFuturo = obterDataComDiferencaDias(10);
         // cenario
 //        LocacaoService locacaoService = new LocacaoService();
 //        Usuario usuario = new Usuario("Fulano");
@@ -197,12 +213,12 @@ public class LocacaoServicoTest {
         Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
 
         //validação
-        Assert.assertFalse(DataUtils.isMesmaData(locacao.getDataLocacao(), datataFuturo));
+        assertFalse(isMesmaData(locacao.getDataLocacao(), datataFuturo));
     }
 
     @Test
     public void deveFalharSeDataEntregaNoPassadoTest() {
-        Date datataFuturo = DataUtils.obterDataComDiferencaDias(10);
+        Date datataFuturo = obterDataComDiferencaDias(10);
         // cenario
 //        LocacaoService locacaoService = new LocacaoService();
 //        Usuario usuario = new Usuario("Fulano");
@@ -212,7 +228,7 @@ public class LocacaoServicoTest {
         Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
 
         //validação
-        Assert.assertFalse(DataUtils.compararData(new Date(), locacao.getDataRetorno()) == -1);
+        assertFalse(compararData(new Date(), locacao.getDataRetorno()) == -1);
     }
 
     private void zeraEstoque(List<Filme> filmes) {

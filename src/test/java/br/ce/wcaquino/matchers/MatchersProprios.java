@@ -9,4 +9,12 @@ public class MatchersProprios {
     public static DiaSemanaMatcher caiNumaSegunda() {
         return new DiaSemanaMatcher(Calendar.MONDAY);
     }
+
+    public static HojeMatcher ehHoje() {
+        return new HojeMatcher();
+    }
+
+    public static HojeMatcher ehHojeComDiferencaDias(int dias) {
+        return new HojeMatcher(dias);
+    }
 }
