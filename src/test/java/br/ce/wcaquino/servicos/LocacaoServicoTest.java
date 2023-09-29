@@ -22,9 +22,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -46,10 +48,11 @@ import static org.junit.Assert.fail;
 
 public class LocacaoServicoTest {
 
-    private LocacaoService locacaoService;
-    private LocacaoDAO locacaoDaoMock;
-    private SPCService spcServiceMock;
-    private EmailService emailServiceMock;
+    @Mock private LocacaoDAO locacaoDaoMock;
+    @Mock private SPCService spcServiceMock;
+    @Mock private EmailService emailServiceMock;
+    @InjectMocks private LocacaoService locacaoService;
+
     @Rule
     public ErrorCollector errorCollector = new ErrorCollector();
 
@@ -59,10 +62,11 @@ public class LocacaoServicoTest {
     @Before
     public void setup() {
         // CRia os mocks que vão implementar os comportamentos aplicados nas suas respectivas interfaces
-        locacaoDaoMock = Mockito.mock(LocacaoDAO.class);
-        spcServiceMock = Mockito.mock(SPCService.class);
-        emailServiceMock = Mockito.mock(EmailService.class);
+//        locacaoDaoMock = Mockito.mock(LocacaoDAO.class);
+//        spcServiceMock = Mockito.mock(SPCService.class);
+//        emailServiceMock = Mockito.mock(EmailService.class);
 
+        MockitoAnnotations.initMocks(this);
         locacaoService = new LocacaoService(locacaoDaoMock,spcServiceMock,emailServiceMock);
     }
 
