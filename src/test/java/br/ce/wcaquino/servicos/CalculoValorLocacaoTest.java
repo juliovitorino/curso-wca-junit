@@ -1,5 +1,6 @@
 package br.ce.wcaquino.servicos;
 
+import br.ce.wcaquino.dao.LocacaoFakeDAO;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
@@ -38,6 +39,7 @@ public class CalculoValorLocacaoTest {
     @Before
     public void setup() {
         locacaoService = new LocacaoService();
+        locacaoService.setLocacaoDAO(new LocacaoFakeDAO()); // Injeta a dependencia Fake da camada DAO
     }
 
     // conjunto de dados que será testado, o JUnit vai enviar uma linha por vez deste array
