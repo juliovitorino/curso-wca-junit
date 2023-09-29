@@ -1,6 +1,6 @@
 package br.ce.wcaquino.servicos;
 
-import br.ce.wcaquino.dao.LocacaoFakeDAO;
+import br.ce.wcaquino.dao.LocacaoDAO;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
@@ -9,6 +9,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,6 +20,8 @@ import java.util.List;
 public class CalculoValorLocacaoTest {
 
     private LocacaoService locacaoService;
+    private LocacaoDAO locacaoDAOMock;
+    private SPCService spcServiceMock;
 
     @Parameterized.Parameter(value = 0)
     public List<Filme> filmes;
@@ -38,8 +42,10 @@ public class CalculoValorLocacaoTest {
 
     @Before
     public void setup() {
-        locacaoService = new LocacaoService();
-        locacaoService.setLocacaoDAO(new LocacaoFakeDAO()); // Injeta a dependencia Fake da camada DAO
+        locacaoDAOMock = Mockito.mock(LocacaoDAO.class); // Cria uma implementação mock de acordo com a LocacaoDAO
+        spcServiceMock = Mockito.mock(SPCService.class);
+        locacaoService = new LocacaoService(locacaoDAOMock, spcServiceMock);
+
     }
 
     // conjunto de dados que será testado, o JUnit vai enviar uma linha por vez deste array

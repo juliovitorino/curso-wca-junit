@@ -3,7 +3,6 @@ package br.ce.wcaquino.servicos;
 import br.ce.wcaquino.builders.FilmeBuilder;
 import br.ce.wcaquino.builders.UsuarioBuilder;
 import br.ce.wcaquino.dao.LocacaoDAO;
-import br.ce.wcaquino.dao.LocacaoFakeDAO;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
@@ -19,15 +18,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import static br.ce.wcaquino.matchers.MatchersProprios.ehAmanha;
 import static br.ce.wcaquino.matchers.MatchersProprios.ehHoje;
-import static br.ce.wcaquino.matchers.MatchersProprios.ehHojeComDiferencaDias;
 import static br.ce.wcaquino.utils.DataUtils.adicionarDias;
 import static br.ce.wcaquino.utils.DataUtils.compararData;
 import static br.ce.wcaquino.utils.DataUtils.isMesmaData;
@@ -43,6 +43,8 @@ import static org.junit.Assert.fail;
 public class LocacaoServicoTest {
 
     private LocacaoService locacaoService;
+    private LocacaoDAO locacaoDaoMock;
+    private SPCService spcServiceMock;
     private Usuario usuario;
     private List<Filme> filmes;
 
@@ -54,8 +56,11 @@ public class LocacaoServicoTest {
 
     @Before
     public void setup() {
-        locacaoService = new LocacaoService();
-        locacaoService.setLocacaoDAO(new LocacaoFakeDAO()); //  Injeta uma instância de dao fake
+        // CRia os mocks que vão implementar os comportamentos aplicados nas suas respectivas interfaces
+        locacaoDaoMock = Mockito.mock(LocacaoDAO.class);
+        spcServiceMock = Mockito.mock(SPCService.class);
+
+        locacaoService = new LocacaoService(locacaoDaoMock,spcServiceMock);
         usuario = UsuarioBuilder.builder().build();
         filmes = new ArrayList<Filme>();
     }
@@ -75,6 +80,29 @@ public class LocacaoServicoTest {
         System.out.println("After class executado");
     }
 
+    @Test
+    public void naoDeveAlugarFilmeParaUsuarioNegativado() {
+        //cenario
+        Usuario usuario = UsuarioBuilder.builder().build();
+        List<Filme> filmes = Arrays.asList(FilmeBuilder.builder().build());
+
+        expectedException.expect(LocadoraException.class);
+        expectedException.expectMessage("Usuário negativado no SPC");
+
+        /*
+         * Ensina ao mockito o comportamento quando chamar o método da interface possuiNegativaçao
+         *
+         * Leia-se:
+         * Mockito, quando invocar o método possuiNegativacao passando o usuario, então retorne true
+         */
+        Mockito.when(spcServiceMock.possuiNegativacao(usuario)).thenReturn(true);
+
+
+        //ação
+        locacaoService.alugarFilme(usuario, filmes);
+
+        //validação (será automática)
+    }
     @Test
     public void deveDevolverFilmeNaSegundaAoAlugarNoSabado() {
 

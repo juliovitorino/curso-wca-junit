@@ -16,9 +16,20 @@ import static br.ce.wcaquino.utils.DataUtils.adicionarDias;
 
 public class LocacaoService {
 
-	private LocacaoDAO dao;
-	
+	private LocacaoDAO locacaoDAO;
+	private SPCService spcService;
+
+
+	public LocacaoService(LocacaoDAO locacaoDAO, SPCService spcService) {
+		this.locacaoDAO = locacaoDAO;
+		this.spcService = spcService;
+	}
+
 	public Locacao alugarFilme(Usuario usuario, List<Filme> filmeList) {
+
+		if (spcService.possuiNegativacao(usuario)) {
+			throw new LocadoraException("Usuário negativado no SPC");
+		}
 
 		Double valorLocacao = getaDouble(usuario, filmeList);
 		Locacao locacao = new Locacao();
@@ -38,7 +49,7 @@ public class LocacaoService {
 		locacao.setDataRetorno(dataEntrega);
 
 		//Salvando a locacao...
-		dao.salvar(locacao);
+		locacaoDAO.salvar(locacao);
 
 		return locacao;
 	}
@@ -63,10 +74,6 @@ public class LocacaoService {
 			valorLocacao += filmeItem.getPrecoLocacao() - descontoAplicar * filmeItem.getPrecoLocacao()/100;
 		}
 		return valorLocacao;
-	}
-
-	public void setLocacaoDAO(LocacaoDAO dao) {
-		this.dao = dao;
 	}
 
 	public static void main(String[] args) {
