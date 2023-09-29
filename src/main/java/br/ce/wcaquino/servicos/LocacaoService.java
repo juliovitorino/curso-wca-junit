@@ -30,7 +30,9 @@ public class LocacaoService {
 	public void notificarAtrasos() {
 		List<Locacao> locacoes = locacaoDAO.obterLocacoesPendentes();
 		for(Locacao locacaoItem : locacoes) {
-			emailService.notificarAtraso(locacaoItem.getUsuario());
+			if(locacaoItem.getDataRetorno().before(new Date())) {
+				emailService.notificarAtraso(locacaoItem.getUsuario());
+			}
 		}
 	}
 	public Locacao alugarFilme(Usuario usuario, List<Filme> filmeList) {

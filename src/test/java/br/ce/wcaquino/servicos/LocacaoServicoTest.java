@@ -90,11 +90,13 @@ public class LocacaoServicoTest {
 
         //cenario
         Usuario usuario = UsuarioBuilder.builder().build();
+        Usuario usuario2 = UsuarioBuilder.builder().comNome("Jonas Banana").build();
+        Usuario usuario3 = UsuarioBuilder.builder().comNome("Clevekand").build();
         List<Locacao> locacoes = Arrays.asList(
-                LocacaoBuilder.builder()
-                        .comUsuario(usuario)
-                        .comDataDeRetorno(DataUtils.obterDataComDiferencaDias(-2))
-                        .build()
+                LocacaoBuilder.builder().atrasado().comUsuario(usuario).build(),
+                LocacaoBuilder.builder().atrasado().comUsuario(usuario3).build(),
+                LocacaoBuilder.builder().atrasado().comUsuario(usuario3).build(),
+                LocacaoBuilder.builder().comUsuario(usuario2).build()
         );
         /*
          * Leia-se; Mockito, quando for chamado o método obterLocacoesPendentes() então retorne uma lista de locações
@@ -107,9 +109,13 @@ public class LocacaoServicoTest {
 
         //validação
         /*
-         * Leia-se; Mockito, verifique quando for executado o método notificarAtraso com o usuário do cenário
+         * Leia-se; Mockito, verifique REALMENTE quando for executado o método notificarAtraso com o usuário do cenário
+         * Ou seja, usuários 1 e 3 executaram o método, enquanto usuário 2 NUNCA passou pelo notificar atraso. Fantastico!
          */
         Mockito.verify(emailServiceMock).notificarAtraso(usuario);
+        Mockito.verify(emailServiceMock, Mockito.times(2)).notificarAtraso(usuario3);
+        Mockito.verify(emailServiceMock, Mockito.never()).notificarAtraso(usuario2);
+        Mockito.verifyNoMoreInteractions(emailServiceMock);
 
     }
     @Test
