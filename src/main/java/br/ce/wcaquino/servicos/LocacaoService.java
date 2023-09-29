@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 
 import static br.ce.wcaquino.utils.DataUtils.adicionarDias;
+import static br.ce.wcaquino.utils.DataUtils.obterDataComDiferencaDias;
 
 public class LocacaoService {
 
@@ -27,6 +28,15 @@ public class LocacaoService {
 		this.emailService = emailService;
 	}
 
+	public void prorrogarLocacao(Locacao locacao, int dias) {
+		Locacao novaLocacao = new Locacao();
+		novaLocacao.setUsuario(locacao.getUsuario());
+		novaLocacao.setFilme(locacao.getFilme());
+		novaLocacao.setDataLocacao(new Date());
+		novaLocacao.setDataRetorno(obterDataComDiferencaDias(novaLocacao.getDataLocacao(),dias));
+		novaLocacao.setValor(locacao.getValor() * dias);
+		locacaoDAO.salvar(novaLocacao);
+	}
 	public void notificarAtrasos() {
 		List<Locacao> locacoes = locacaoDAO.obterLocacoesPendentes();
 		for(Locacao locacaoItem : locacoes) {
@@ -37,9 +47,16 @@ public class LocacaoService {
 	}
 	public Locacao alugarFilme(Usuario usuario, List<Filme> filmeList) {
 
-		if (spcService.possuiNegativacao(usuario)) {
-			throw new LocadoraException("Usuário negativado no SPC");
+		try {
+			if (spcService.possuiNegativacao(usuario)) {
+				throw new LocadoraException("Usuário negativado no SPC");
+			}
+		} catch(LocadoraException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new LocadoraException("Problemas com SPC, tente novamente");
 		}
+
 
 		Double valorLocacao = getaDouble(usuario, filmeList);
 		Locacao locacao = new Locacao();

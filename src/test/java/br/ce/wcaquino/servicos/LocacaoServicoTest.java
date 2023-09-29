@@ -22,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -67,7 +68,7 @@ public class LocacaoServicoTest {
 //        emailServiceMock = Mockito.mock(EmailService.class);
 
         MockitoAnnotations.initMocks(this);
-        locacaoService = new LocacaoService(locacaoDaoMock,spcServiceMock,emailServiceMock);
+        //locacaoService = new LocacaoService(locacaoDaoMock,spcServiceMock,emailServiceMock);
     }
 
     @After
@@ -85,6 +86,41 @@ public class LocacaoServicoTest {
         System.out.println("After class executado");
     }
 
+    @Test
+    public void devePermitirProrrogarlocacao() {
+        // cenario
+        Locacao locacao = LocacaoBuilder.builder().build();
+
+        //ação
+        locacaoService.prorrogarLocacao(locacao,3);
+
+        // verificação
+        ArgumentCaptor<Locacao> argumentCaptor = ArgumentCaptor.forClass(Locacao.class);
+        Mockito.verify(locacaoDaoMock).salvar(argumentCaptor.capture());
+        Locacao locacaoRetornada = argumentCaptor.getValue();
+
+        errorCollector.checkThat(locacaoRetornada.getValor(), CoreMatchers.is(12.0));
+        errorCollector.checkThat(locacaoRetornada.getDataLocacao(), MatchersProprios.ehHoje());
+        errorCollector.checkThat(locacaoRetornada.getDataRetorno(), MatchersProprios.ehHojeComDiferencaDias(3));
+    }
+    @Test
+    public void deveChecarErroDeConsultaAoSPC() {
+        // cenario
+        Usuario usuario = UsuarioBuilder.builder().build();;
+        List<Filme> filmes = Arrays.asList(FilmeBuilder.builder().build());
+
+        expectedException.expect(LocadoraException.class);
+        expectedException.expectMessage("Problemas com SPC, tente novamente");
+
+        Mockito.when(spcServiceMock.possuiNegativacao(usuario)).thenThrow(new RuntimeException("Falha catastrófica") );
+
+
+        // ação sob teste
+        locacaoService.alugarFilme(usuario,filmes);
+
+
+        // verificação é automática
+    }
     @Test
     public void deveEnviarEmailParaLocacaoAtrasada() {
 

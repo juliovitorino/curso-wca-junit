@@ -22,6 +22,7 @@ public class LocacaoBuilder {
         locacao.setDataRetorno(obterDataComDiferencaDias(locacao.getDataLocacao(),1));
         locacao.setUsuario(UsuarioBuilder.builder().build());
         locacao.setFilme(Arrays.asList(FilmeBuilder.builder().build()));
+        locacao.setValor(4.0);
         locacaoBuilder.locacao = locacao;
         return locacaoBuilder;
     }
