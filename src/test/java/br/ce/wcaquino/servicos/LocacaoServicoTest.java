@@ -1,15 +1,15 @@
 package br.ce.wcaquino.servicos;
 
+import br.ce.wcaquino.builders.FilmeBuilder;
+import br.ce.wcaquino.builders.UsuarioBuilder;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
 import br.ce.wcaquino.exception.FilmeSemEstoqueException;
 import br.ce.wcaquino.exception.LocadoraException;
 import br.ce.wcaquino.matchers.MatchersProprios;
-import br.ce.wcaquino.utils.DataUtils;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -23,6 +23,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import static br.ce.wcaquino.matchers.MatchersProprios.ehAmanha;
 import static br.ce.wcaquino.matchers.MatchersProprios.ehHoje;
 import static br.ce.wcaquino.matchers.MatchersProprios.ehHojeComDiferencaDias;
 import static br.ce.wcaquino.utils.DataUtils.adicionarDias;
@@ -52,7 +53,7 @@ public class LocacaoServicoTest {
     @Before
     public void setup() {
         locacaoService = new LocacaoService();
-        usuario = new Usuario("Fulano");
+        usuario = UsuarioBuilder.builder().build();
         filmes = new ArrayList<Filme>();
     }
 
@@ -76,7 +77,7 @@ public class LocacaoServicoTest {
 
         Assume.assumeTrue(verificarDiaSemana(new Date(), Calendar.SATURDAY));
         // cenario
-        filmes.add(new Filme("The big short",10,5.0));
+        filmes.add(FilmeBuilder.builder().build());
 
         //execução
         Locacao locacao = locacaoService.alugarFilme(usuario, filmes);
@@ -91,6 +92,8 @@ public class LocacaoServicoTest {
 
     @Test
     public void alugarFilmeComSucesso() {
+
+        Assume.assumeTrue(verificarDiaSemana(new Date(),Calendar.SATURDAY));
         // cenario
         Date agora = new Date();
         Date expectedDateLocacaoHoje = new Date();
@@ -101,7 +104,7 @@ public class LocacaoServicoTest {
             expectedDateEntrega = adicionarDias(agora,1);
         }
 
-        filmes.add(new Filme("The big short",10,5.0));
+        filmes.add(FilmeBuilder.builder().build());
 
         //execução
         Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
@@ -112,7 +115,7 @@ public class LocacaoServicoTest {
         errorCollector.checkThat(isMesmaData(locacao.getDataLocacao(), expectedDateLocacaoHoje), is(true));
 
         // com matcher próprio
-        errorCollector.checkThat(locacao.getDataRetorno(), ehHojeComDiferencaDias(1));
+        errorCollector.checkThat(locacao.getDataRetorno(), ehAmanha());
         errorCollector.checkThat(locacao.getDataLocacao(), ehHoje());
     }
 
@@ -120,10 +123,7 @@ public class LocacaoServicoTest {
     public void devePegarExceptionSemSaldoEstoqueElegante() {
 
         // cenario
-//        LocacaoService locacaoService = new LocacaoService();
-//        Usuario usuario = new Usuario("Fulano");
-        filmes.add(new Filme("The big short",0,5.0));
-        zeraEstoque(filmes);
+        filmes.add(FilmeBuilder.builder().zerarEstoque().build());
 
         //execução
         Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
@@ -137,10 +137,8 @@ public class LocacaoServicoTest {
     public void devePegarExceptionSemSaldoEstoqueRobusta() {
 
         // cenario
-//        LocacaoService locacaoService = new LocacaoService();
-//        Usuario usuario = new Usuario("Fulano");
-        filmes.add(new Filme("The big short",0,5.0));
-        zeraEstoque(filmes);
+        //filmes.add(new Filme("The big short",0,5.0));
+        filmes.add(FilmeBuilder.builder().zerarEstoque().build());;
 
         //execução
         try {
@@ -156,8 +154,7 @@ public class LocacaoServicoTest {
     public void devePegarExceptionUsuarioVazio() {
 
         // cenario
-//        LocacaoService locacaoService = new LocacaoService();
-        Filme filme = new Filme("The big short",10,5.0);
+        Filme filme = FilmeBuilder.builder().build();
 
         //execução
         try {
@@ -173,10 +170,8 @@ public class LocacaoServicoTest {
     public void devePegarExceptionSemSaldoEstoqueRobustaExpectedException() {
 
         // cenario
-//        LocacaoService locacaoService = new LocacaoService();
 //        Usuario usuario = new Usuario("Fulano");
-        filmes.add(new Filme("The big short",0,5.0));
-        zeraEstoque(filmes);
+        filmes.add(FilmeBuilder.builder().zerarEstoque().build());
 
         //execução
         Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
@@ -188,8 +183,7 @@ public class LocacaoServicoTest {
     public void devePegarExceptionFilmeVazioExpectedException() {
 
         // cenario
-//        LocacaoService locacaoService = new LocacaoService();
-        Usuario usuario = new Usuario("Fulano");
+        Usuario usuario = UsuarioBuilder.builder().build();
 
         expectedException.expect(LocadoraException.class);
         expectedException.expectMessage("Filme está nulo ou vazio");
@@ -205,9 +199,7 @@ public class LocacaoServicoTest {
     public void deveFalharDataLocacaoDiferenteHojeTest() {
         Date datataFuturo = obterDataComDiferencaDias(10);
         // cenario
-//        LocacaoService locacaoService = new LocacaoService();
-//        Usuario usuario = new Usuario("Fulano");
-        Filme filme = new Filme("The big short",10,5.0);
+        Filme filme = FilmeBuilder.builder().build();
 
         //execução
         Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
@@ -220,9 +212,7 @@ public class LocacaoServicoTest {
     public void deveFalharSeDataEntregaNoPassadoTest() {
         Date datataFuturo = obterDataComDiferencaDias(10);
         // cenario
-//        LocacaoService locacaoService = new LocacaoService();
-//        Usuario usuario = new Usuario("Fulano");
-        Filme filme = new Filme("The big short",10,5.0);
+        Filme filme = FilmeBuilder.builder().build();
 
         //execução
         Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
@@ -231,10 +221,5 @@ public class LocacaoServicoTest {
         assertFalse(compararData(new Date(), locacao.getDataRetorno()) == -1);
     }
 
-    private void zeraEstoque(List<Filme> filmes) {
-        for(Filme filmeItem : filmes) {
-            filmeItem.setEstoque(0);
-        }
-    }
 
 }

@@ -14,6 +14,10 @@ public class MatchersProprios {
         return new HojeMatcher();
     }
 
+    public static AmanhaMatcher ehAmanha() {
+        return new AmanhaMatcher();
+    }
+
     public static HojeMatcher ehHojeComDiferencaDias(int dias) {
         return new HojeMatcher(dias);
     }
