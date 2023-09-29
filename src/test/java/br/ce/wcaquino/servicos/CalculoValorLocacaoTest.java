@@ -22,6 +22,7 @@ public class CalculoValorLocacaoTest {
     private LocacaoService locacaoService;
     private LocacaoDAO locacaoDAOMock;
     private SPCService spcServiceMock;
+    private EmailService emailServiceMock;
 
     @Parameterized.Parameter(value = 0)
     public List<Filme> filmes;
@@ -44,7 +45,7 @@ public class CalculoValorLocacaoTest {
     public void setup() {
         locacaoDAOMock = Mockito.mock(LocacaoDAO.class); // Cria uma implementação mock de acordo com a LocacaoDAO
         spcServiceMock = Mockito.mock(SPCService.class);
-        locacaoService = new LocacaoService(locacaoDAOMock, spcServiceMock);
+        locacaoService = new LocacaoService(locacaoDAOMock, spcServiceMock, emailServiceMock);
 
     }
 

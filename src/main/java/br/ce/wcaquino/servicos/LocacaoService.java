@@ -18,13 +18,21 @@ public class LocacaoService {
 
 	private LocacaoDAO locacaoDAO;
 	private SPCService spcService;
+	private EmailService emailService;
 
 
-	public LocacaoService(LocacaoDAO locacaoDAO, SPCService spcService) {
+	public LocacaoService(LocacaoDAO locacaoDAO, SPCService spcService, EmailService emailService) {
 		this.locacaoDAO = locacaoDAO;
 		this.spcService = spcService;
+		this.emailService = emailService;
 	}
 
+	public void notificarAtrasos() {
+		List<Locacao> locacoes = locacaoDAO.obterLocacoesPendentes();
+		for(Locacao locacaoItem : locacoes) {
+			emailService.notificarAtraso(locacaoItem.getUsuario());
+		}
+	}
 	public Locacao alugarFilme(Usuario usuario, List<Filme> filmeList) {
 
 		if (spcService.possuiNegativacao(usuario)) {

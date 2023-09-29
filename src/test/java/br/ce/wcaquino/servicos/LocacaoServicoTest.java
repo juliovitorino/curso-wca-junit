@@ -1,6 +1,7 @@
 package br.ce.wcaquino.servicos;
 
 import br.ce.wcaquino.builders.FilmeBuilder;
+import br.ce.wcaquino.builders.LocacaoBuilder;
 import br.ce.wcaquino.builders.UsuarioBuilder;
 import br.ce.wcaquino.dao.LocacaoDAO;
 import br.ce.wcaquino.entidades.Filme;
@@ -9,8 +10,11 @@ import br.ce.wcaquino.entidades.Usuario;
 import br.ce.wcaquino.exception.FilmeSemEstoqueException;
 import br.ce.wcaquino.exception.LocadoraException;
 import br.ce.wcaquino.matchers.MatchersProprios;
+import br.ce.wcaquino.utils.DataUtils;
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -45,6 +49,7 @@ public class LocacaoServicoTest {
     private LocacaoService locacaoService;
     private LocacaoDAO locacaoDaoMock;
     private SPCService spcServiceMock;
+    private EmailService emailServiceMock;
     private Usuario usuario;
     private List<Filme> filmes;
 
@@ -59,8 +64,9 @@ public class LocacaoServicoTest {
         // CRia os mocks que vão implementar os comportamentos aplicados nas suas respectivas interfaces
         locacaoDaoMock = Mockito.mock(LocacaoDAO.class);
         spcServiceMock = Mockito.mock(SPCService.class);
+        emailServiceMock = Mockito.mock(EmailService.class);
 
-        locacaoService = new LocacaoService(locacaoDaoMock,spcServiceMock);
+        locacaoService = new LocacaoService(locacaoDaoMock,spcServiceMock,emailServiceMock);
         usuario = UsuarioBuilder.builder().build();
         filmes = new ArrayList<Filme>();
     }
@@ -81,13 +87,38 @@ public class LocacaoServicoTest {
     }
 
     @Test
-    public void naoDeveAlugarFilmeParaUsuarioNegativado() {
+    public void deveEnviarEmailParaLocacaoAtrasada() {
+
         //cenario
         Usuario usuario = UsuarioBuilder.builder().build();
-        List<Filme> filmes = Arrays.asList(FilmeBuilder.builder().build());
+        List<Locacao> locacoes = Arrays.asList(
+                LocacaoBuilder.builder()
+                        .comUsuario(usuario)
+                        .comDataDeRetorno(DataUtils.obterDataComDiferencaDias(-2))
+                        .build()
+        );
+        /*
+         * Leia-se; Mockito, quando for chamado o método obterLocacoesPendentes() então retorne uma lista de locações
+         * vide o método em LocacaoService.obterLocacoesPendentes
+         */
+        Mockito.when(locacaoDaoMock.obterLocacoesPendentes()).thenReturn(locacoes);
 
-        expectedException.expect(LocadoraException.class);
-        expectedException.expectMessage("Usuário negativado no SPC");
+        //acao
+        locacaoService.notificarAtrasos();;
+
+        //validação
+        /*
+         * Leia-se; Mockito, verifique quando for executado o método notificarAtraso com o usuário do cenário
+         */
+        Mockito.verify(emailServiceMock).notificarAtraso(usuario);
+
+    }
+    @Test
+    public void naoDeveAlugarFilmeParaUsuarioNegativadoSPC() {
+        //cenario
+        Usuario usuario = UsuarioBuilder.builder().build();
+        Usuario usuario2 = UsuarioBuilder.builder().comNome("Usuario 2").build();
+        List<Filme> filmes = Arrays.asList(FilmeBuilder.builder().build());
 
         /*
          * Ensina ao mockito o comportamento quando chamar o método da interface possuiNegativaçao
@@ -99,9 +130,19 @@ public class LocacaoServicoTest {
 
 
         //ação
-        locacaoService.alugarFilme(usuario, filmes);
+        try {
+            locacaoService.alugarFilme(usuario, filmes);
+            Assert.fail("Falso positivo. Não deveria chegar nesse ponto");
+        } catch(LocadoraException e) {
+            Assert.assertThat(e.getMessage(), CoreMatchers.is("Usuário negativado no SPC"));
+        }
 
-        //validação (será automática)
+        //validação
+        /*
+         * Leia-se: Mockito, faça uma verificação se o serviço do SPCService invocou o método possui negativação para
+         * o usuário do cenário
+         */
+        Mockito.verify(spcServiceMock).possuiNegativacao(usuario);
     }
     @Test
     public void deveDevolverFilmeNaSegundaAoAlugarNoSabado() {
