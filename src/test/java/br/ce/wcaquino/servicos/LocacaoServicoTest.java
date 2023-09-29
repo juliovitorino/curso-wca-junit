@@ -50,9 +50,6 @@ public class LocacaoServicoTest {
     private LocacaoDAO locacaoDaoMock;
     private SPCService spcServiceMock;
     private EmailService emailServiceMock;
-    private Usuario usuario;
-    private List<Filme> filmes;
-
     @Rule
     public ErrorCollector errorCollector = new ErrorCollector();
 
@@ -67,8 +64,6 @@ public class LocacaoServicoTest {
         emailServiceMock = Mockito.mock(EmailService.class);
 
         locacaoService = new LocacaoService(locacaoDaoMock,spcServiceMock,emailServiceMock);
-        usuario = UsuarioBuilder.builder().build();
-        filmes = new ArrayList<Filme>();
     }
 
     @After
@@ -149,7 +144,8 @@ public class LocacaoServicoTest {
 
         Assume.assumeTrue(verificarDiaSemana(new Date(), Calendar.SATURDAY));
         // cenario
-        filmes.add(FilmeBuilder.builder().build());
+        Usuario usuario = UsuarioBuilder.builder().build();
+        List<Filme> filmes = Arrays.asList(FilmeBuilder.builder().build());
 
         //execução
         Locacao locacao = locacaoService.alugarFilme(usuario, filmes);
@@ -176,7 +172,8 @@ public class LocacaoServicoTest {
             expectedDateEntrega = adicionarDias(agora,1);
         }
 
-        filmes.add(FilmeBuilder.builder().build());
+        Usuario usuario = UsuarioBuilder.builder().build();
+        List<Filme> filmes = Arrays.asList(FilmeBuilder.builder().build());
 
         //execução
         Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
@@ -195,7 +192,8 @@ public class LocacaoServicoTest {
     public void devePegarExceptionSemSaldoEstoqueElegante() {
 
         // cenario
-        filmes.add(FilmeBuilder.builder().zerarEstoque().build());
+        Usuario usuario = UsuarioBuilder.builder().build();
+        List<Filme> filmes = Arrays.asList(FilmeBuilder.builder().zerarEstoque().build());
 
         //execução
         Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
@@ -209,8 +207,8 @@ public class LocacaoServicoTest {
     public void devePegarExceptionSemSaldoEstoqueRobusta() {
 
         // cenario
-        //filmes.add(new Filme("The big short",0,5.0));
-        filmes.add(FilmeBuilder.builder().zerarEstoque().build());;
+        Usuario usuario = UsuarioBuilder.builder().build();
+        List<Filme> filmes = Arrays.asList(FilmeBuilder.builder().zerarEstoque().build());;
 
         //execução
         try {
@@ -226,7 +224,7 @@ public class LocacaoServicoTest {
     public void devePegarExceptionUsuarioVazio() {
 
         // cenario
-        Filme filme = FilmeBuilder.builder().build();
+        List<Filme> filmes = Arrays.asList(FilmeBuilder.builder().build());
 
         //execução
         try {
@@ -242,8 +240,8 @@ public class LocacaoServicoTest {
     public void devePegarExceptionSemSaldoEstoqueRobustaExpectedException() {
 
         // cenario
-//        Usuario usuario = new Usuario("Fulano");
-        filmes.add(FilmeBuilder.builder().zerarEstoque().build());
+        Usuario usuario = UsuarioBuilder.builder().build();
+        List<Filme> filmes = Arrays.asList(FilmeBuilder.builder().zerarEstoque().build());
 
         //execução
         Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
@@ -271,7 +269,8 @@ public class LocacaoServicoTest {
     public void deveFalharDataLocacaoDiferenteHojeTest() {
         Date datataFuturo = obterDataComDiferencaDias(10);
         // cenario
-        Filme filme = FilmeBuilder.builder().build();
+        Usuario usuario = UsuarioBuilder.builder().build();
+        List<Filme> filmes = Arrays.asList(FilmeBuilder.builder().build());
 
         //execução
         Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
@@ -284,7 +283,8 @@ public class LocacaoServicoTest {
     public void deveFalharSeDataEntregaNoPassadoTest() {
         Date datataFuturo = obterDataComDiferencaDias(10);
         // cenario
-        Filme filme = FilmeBuilder.builder().build();
+        Usuario usuario = UsuarioBuilder.builder().build();
+        List<Filme> filmes = Arrays.asList(FilmeBuilder.builder().build());
 
         //execução
         Locacao locacao = locacaoService.alugarFilme(usuario,filmes);
