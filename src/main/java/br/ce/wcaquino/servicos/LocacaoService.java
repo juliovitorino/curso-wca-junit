@@ -62,7 +62,7 @@ public class LocacaoService {
 		Locacao locacao = new Locacao();
 		locacao.setFilme(filmeList);
 		locacao.setUsuario(usuario);
-		locacao.setDataLocacao(new Date());
+		locacao.setDataLocacao(Calendar.getInstance().getTime());
 		locacao.setValor(valorLocacao);
 
 		//Entrega no dia seguinte

@@ -6,17 +6,36 @@ import org.hamcrest.TypeSafeMatcher;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class DiaSemanaMatcher extends TypeSafeMatcher<Date> {
 
     private Integer diaSemana;
+    private List<Integer> diasDaSemana;
+
     public DiaSemanaMatcher(Integer diaSemana) {
+        this(diaSemana, null);
+    }
+    public DiaSemanaMatcher(List<Integer> diasDaSemana) {
+        this(null, diasDaSemana);
+    }
+    public DiaSemanaMatcher(Integer diaSemana, List<Integer> diasDaSemana) {
         this.diaSemana = diaSemana;
+        this.diasDaSemana = diasDaSemana;
     }
     @Override
     protected boolean matchesSafely(Date date) {
-        return DataUtils.verificarDiaSemana(date,diaSemana);
+        boolean isDia = false;
+        if(diasDaSemana == null) {
+            return DataUtils.verificarDiaSemana(date,diaSemana);
+        } else {
+            for(Integer dia : diasDaSemana) {
+                isDia = DataUtils.verificarDiaSemana(date,dia);
+                if(isDia) break;
+            }
+        }
+        return isDia;
     }
 
     @Override
